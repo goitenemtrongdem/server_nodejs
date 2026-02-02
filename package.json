@@ -1,0 +1,27 @@
+{
+  "name": "server_nodejs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "firebase-admin": "^12.7.0",
+    "mqtt": "^5.14.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/goitenemtrongdem/server_nodejs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/goitenemtrongdem/server_nodejs/issues"
+  },
+  "homepage": "https://github.com/goitenemtrongdem/server_nodejs#readme",
+  "description": ""
+}
