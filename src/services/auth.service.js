@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const admin = require("../config/firebase");
 const nodemailer = require("nodemailer");
-
+const axios = require("axios");
 /* ================= TEMP STORE ================= */
 const tempUsers = new Map();
 /*
@@ -126,4 +126,45 @@ exports.saveUserAfterVerify = async (idToken) => {
   });
 
   return { uid, existed: false };
+};
+
+
+exports.signIn = async ({ email, password, fcmToken }) => {
+  const apiKey = process.env.FIREBASE_WEB_API_KEY;
+  const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
+
+  try {
+    const res = await axios.post(url, {
+      email,
+      password,
+      returnSecureToken: true,
+    });
+
+    const uid = res.data.localId;
+
+    // 🔹 update FCM token vào Firestore
+    if (fcmToken) {
+      await admin
+        .firestore()
+        .collection("users")
+        .doc(uid)
+        .set(
+          {
+            fcmTokens: admin.firestore.FieldValue.arrayUnion(fcmToken),
+            lastSignIn: admin.firestore.FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
+    }
+
+    return {
+      uid,
+      email: res.data.email,
+      idToken: res.data.idToken,
+      refreshToken: res.data.refreshToken,
+      expiresIn: res.data.expiresIn,
+    };
+  } catch (err) {
+    throw new Error("Invalid email or password");
+  }
 };

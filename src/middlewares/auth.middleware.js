@@ -16,3 +16,24 @@ module.exports = async (req, res, next) => {
     return res.status(401).json({ message: "Invalid token" });
   }
 };
+
+module.exports = async (req, res, next) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(401).json({ message: "Missing idToken" });
+    }
+
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    req.user = {
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+    };
+
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
+}

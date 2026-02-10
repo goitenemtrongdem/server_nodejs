@@ -51,3 +51,23 @@ exports.afterVerify = async (req, res) => {
     res.status(401).json({ message: err.message });
   }
 };
+exports.signIn = async (req, res) => {
+  try {
+    const { email, password, fcmToken } = req.body;
+
+    const data = await authService.signIn({
+      email,
+      password,
+      fcmToken,
+    });
+
+    res.status(200).json({
+      message: "Sign in successful",
+      data,
+    });
+  } catch (err) {
+    res.status(401).json({
+      message: err.message,
+    });
+  }
+};

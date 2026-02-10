@@ -21,4 +21,5 @@ router.get("/verify-email", async (req, res) => {
   }
 });
 router.post("/after-verify", authController.afterVerify);
+router.post("/signin", authController.signIn);
 module.exports = router;
