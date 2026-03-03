@@ -10,10 +10,10 @@ admin.initializeApp({
   databaseURL:
     "https://iot-chong-trom-xe-may-default-rtdb.asia-southeast1.firebasedatabase.app",
 });
-
+const db = admin.firestore();
 const rtdb = admin.database();
 
 console.log("🔥 Firebase RTDB initialized");
-
-module.exports = { rtdb };
-module.exports = admin;
+// module.exports = admin;
+module.exports = { admin, db,rtdb };
+ 

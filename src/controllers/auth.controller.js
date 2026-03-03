@@ -1,7 +1,26 @@
 const authService = require("../services/auth.service");
 // const response = require("../utils/response");
 // const authService = require("../services/auth.service");
-exports.signupRequest = async (req, res) => {
+const { admin , db } = require("../config/firebase");
+// ================= SAVE AUTH NOTIFICATION =================
+ // ================= SAVE AUTH NOTIFICATION =================
+async function saveAuthNotification(userId, title, content) {
+  await db
+    .collection("user-notifications")
+    .doc(userId)
+    .collection("items")
+    .add({
+      title,
+      content,
+      type: 4,
+      status: 1,
+      isRead: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+  console.log("🔐 Auth notification saved:", title);
+}
+const signupRequest = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -22,7 +41,7 @@ exports.signupRequest = async (req, res) => {
 };
 
 
-exports.verifyEmail = async (req, res) => {
+const verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;
 
@@ -34,7 +53,7 @@ exports.verifyEmail = async (req, res) => {
   }
 };
 
-exports.afterVerify = async (req, res) => {
+const afterVerify = async (req, res) => {
   try {
     const { idToken } = req.body;
     if (!idToken) {
@@ -42,6 +61,13 @@ exports.afterVerify = async (req, res) => {
     }
 
     const result = await authService.saveUserAfterVerify(idToken);
+
+// ===== SAVE SIGNUP NOTIFICATION =====
+await saveAuthNotification(
+  result.uid,
+  "signup",
+  "Account created successfully"
+);
 
     res.status(200).json({
       message: "User saved to database",
@@ -51,23 +77,52 @@ exports.afterVerify = async (req, res) => {
     res.status(401).json({ message: err.message });
   }
 };
-exports.signIn = async (req, res) => {
+/* ================= SIGN IN ================= */
+const signIn = async (req, res) => {
   try {
     const { email, password, fcmToken } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing email or password"
+      });
+    }
+
     const data = await authService.signIn({
-      email,
+      email, 
       password,
-      fcmToken,
+      fcmToken
+    });
+await saveAuthNotification(
+  data.uid,
+  "signin",
+  "User signed in successfully"
+);
+    return res.status(200).json({
+      success: true,
+      message: "Sign in successful",
+      uid: data.uid,
+      email: data.email,
+      firebaseCustomToken: data.firebaseCustomToken,
+      idToken: data.idToken,
+      refreshToken: data.refreshToken,
+      expiresIn: data.expiresIn
     });
 
-    res.status(200).json({
-      message: "Sign in successful",
-      data,
-    });
   } catch (err) {
-    res.status(401).json({
-      message: err.message,
+    console.log("🔥 signIn error:", err.message);
+
+    return res.status(401).json({
+      success: false,
+      message: err.message
     });
   }
+};
+
+module.exports = {
+  signupRequest,
+  verifyEmail,
+  afterVerify,
+  signIn
 };

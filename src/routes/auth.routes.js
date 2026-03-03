@@ -5,13 +5,19 @@ const authController = require("../controllers/auth.controller");
 router.post("/signup-request", async (req, res) => {
   try {
     const { email, password } = req.body;
-    await authService.signupRequest({ email, password });
-    res.json({ success: true, message: "Verification email sent" });
+
+    const result = await authService.signupRequest({ email, password });
+
+    res.json(result);   // 🔥 trả nguyên result
+
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
   }
 });
-
+router.post("/after-verify", authService.afterVerify);
 router.get("/verify-email", async (req, res) => {
   try {
     await authService.verifyEmail(req.query.token);
